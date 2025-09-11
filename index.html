@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HitBoy Said Word</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/rtf.js"></script>
+</head>
+<body>
+  <!-- Main Screen -->
+  <div id="mainScreen" class="screen">
+    <h1>HitBoy Said Word</h1>
+    <button onclick="newDocument()">New Document</button>
+    <input type="file" id="fileInput" onchange="importFile(event)">
+  </div>
+
+  <!-- Editor Screen -->
+  <div id="editorScreen" class="screen" style="display:none;">
+    <div class="ribbon">
+      <div>
+        <button class="tabButton active" onclick="switchTab('home')">Home</button>
+        <button class="tabButton" onclick="switchTab('insert')">Insert</button>
+        <button class="tabButton" onclick="switchTab('layout')">Layout</button>
+      </div>
+
+      <div id="homeTab" class="tabPanel" style="display:flex;">
+        <div class="group">
+          <button onclick="execCmd('bold')">B</button>
+          <button onclick="execCmd('italic')">I</button>
+          <button onclick="execCmd('underline')">U</button>
+        </div>
+        <div class="group">
+          <select id="fontSelect" onchange="execCmd('fontName',this.value)"></select>
+          <input type="text" id="customFontInput" placeholder="Add font">
+          <button onclick="addCustomFont()">+</button>
+        </div>
+        <div class="group">
+          <button onclick="undo()">Undo</button>
+          <button onclick="redo()">Redo</button>
+        </div>
+        <div class="group">
+          <button onclick="findReplace()">Find/Replace</button>
+        </div>
+        <div class="group">
+          <button onclick="saveFile()">Quick Save</button>
+          <select id="saveFormat"></select>
+          <button onclick="saveAs()">Save As</button>
+        </div>
+      </div>
+
+      <div id="insertTab" class="tabPanel" style="display:none;">
+        <div class="group">
+          <button onclick="insertTable()">Insert Table</button>
+          <button onclick="insertImage()">Insert Image</button>
+        </div>
+      </div>
+
+      <div id="layoutTab" class="tabPanel" style="display:none;">
+        <div class="group">
+          <button onclick="setPageOrientation('portrait')">Portrait</button>
+          <button onclick="setPageOrientation('landscape')">Landscape</button>
+        </div>
+        <div class="group">
+          <button onclick="zoomIn()">Zoom In</button>
+          <button onclick="zoomOut()">Zoom Out</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="editorWrapper"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
