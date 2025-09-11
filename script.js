@@ -62,22 +62,58 @@ function checkPageOverflow(){ const page=document.querySelector('.page:last-chil
 
 // ------------------ File Import ------------------
 function importFile(event){
-    const f=event.target.files[0]; if(!f)return;
-    let ext=f.name.split('.').pop().toLowerCase();
-    const hMap={'hoc':'docx','hocx':'docx','hot':'dotx','hotx':'dotx','hocm':'docm','hotm':'dotm','htf':'xml','hxt':'xml','hml':'html','hht':'html','hhtml':'html'};
-    if(hMap[ext]) ext=hMap[ext];
-    const r=new FileReader();
-    r.onload=async function(e){
-        const c=e.target.result; editorWrapper.innerHTML=''; createPage(); const editor=document.querySelector('.page:last-child .editor');
-        try{
-            if(['txt','xml'].includes(ext)) editor.innerText=c;
-            else if(['html','mht','mhtml'].includes(ext)) editor.innerHTML=c;
-            else if(['docx','docm','dotx','dotm'].includes(ext)){const res=await mammoth.extractRawText({arrayBuffer:c}); editor.innerText=res.value;}
-            else if(['rtf'].includes(ext)){if(typeof RTFJS!=='undefined'){const doc=new RTFJS.Document(c); const el=await doc.render(); editor.innerHTML=''; editor.appendChild(el);}else{editor.innerText=c;}}
-            else editor.innerText=c;
-        }catch(err){alert("Error: "+err);}
+    const file = event.target.files[0];
+    if(!file) return;
+
+    let ext = file.name.split('.').pop().toLowerCase();
+
+    const hMap = {
+        'hoc':'docx','hocx':'docx',
+        'hot':'dotx','hotx':'dotx',
+        'hocm':'docm','hotm':'dotm',
+        'htf':'xml','hxt':'xml',
+        'hml':'html','hht':'html','hhtml':'html'
     };
-    if(['docx','docm','dotx','dotm'].includes(ext)) r.readAsArrayBuffer(f); else r.readAsText(f);
+    if(hMap[ext]) ext = hMap[ext];
+
+    const reader = new FileReader();
+    reader.onload = async function(e){
+        const content = e.target.result;
+        editorWrapper.innerHTML = '';
+        createPage();
+        const editor = document.querySelector('.page:last-child .editor');
+
+        try{
+            if(['txt','xml','hoc','hocx','hot','hotx','hocm','hotm','htf','hxt'].includes(ext)){
+                editor.innerText = content;
+            } else if(['html','hml','hht','hhtml','mht','mhtml'].includes(ext)){
+                editor.innerHTML = content;
+            } else if(['doc','dot','docx','dotx','docm','dotm'].includes(ext)){
+                const arrayBuffer = content;
+                const result = await mammoth.extractRawText({arrayBuffer});
+                editor.innerText = result.value;
+            } else if(['rtf'].includes(ext)){
+                if(typeof RTFJS!=='undefined'){
+                    const doc = new RTFJS.Document(content);
+                    const rendered = await doc.render();
+                    editor.innerHTML = '';
+                    editor.appendChild(rendered);
+                } else {
+                    editor.innerText = content;
+                }
+            } else {
+                editor.innerText = content;
+            }
+        } catch(err){
+            alert("Error loading file: "+err.message);
+        }
+    }
+
+    if(['doc','dot','docx','dotx','docm','dotm'].includes(ext)){
+        reader.readAsArrayBuffer(file);
+    } else {
+        reader.readAsText(file);
+    }
 }
 
 // ------------------ File Save ------------------
@@ -89,25 +125,31 @@ function saveFile(){
 }
 
 // ------------------ Save As with dropdown ------------------
-const saveFormatSelect=document.getElementById('saveFormat');
-const formats=[
-  "txt","docx","rtf","xml","mht","mhtml",
+const saveFormatSelect = document.getElementById('saveFormat');
+const formats = [
+  "txt","doc","dot","docx","dotx","docm","dotm","rtf","xml",
+  "mht","mhtml",
   "hoc","hocx","hot","hotx","hocm","hotm","htf","hxt","hml","hht","hhtml"
 ];
-formats.forEach(f=>{const o=document.createElement('option'); o.value=f; o.innerText=f; saveFormatSelect.appendChild(o);});
+formats.forEach(f => { const o = document.createElement('option'); o.value = f; o.innerText = f; saveFormatSelect.appendChild(o); });
 
 function saveAs(){
-    const editor=document.querySelector('.page:last-child .editor');
-    const content=editor.innerHTML;
-    const ext=saveFormatSelect.value;
+    const editor = document.querySelector('.page:last-child .editor');
+    const content = editor.innerHTML;
+    const ext = saveFormatSelect.value;
     if(!ext) return;
-    let fn=prompt("File name (without extension):","document");
+    let fn = prompt("File name (without extension):","document");
     if(!fn) return;
-    fn=fn+"."+ext.toLowerCase();
-    let mime="text/html"; 
-    if(["txt","rtf","xml","mht","hoc","hocx","hot","hotx","hocm","hotm","htf","hxt"].includes(ext)) mime="text/plain";
-    const blob=new Blob([content],{type:mime});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fn; a.click();
+    fn = fn + "." + ext.toLowerCase();
+
+    let mime = "text/html"; 
+    if(["txt","rtf","xml","mht","mhtml","hoc","hocx","hot","hotx","hocm","hotm","htf","hxt"].includes(ext)) mime = "text/plain";
+
+    const blob = new Blob([content],{type:mime});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fn;
+    a.click();
 }
 
 // ------------------ Undo/Redo ------------------
